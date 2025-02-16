@@ -1,6 +1,7 @@
 package com.example.proyecto.data.remote
 
 import com.example.proyecto.data.model.AuthResponse
+import com.example.proyecto.data.model.ProductData
 import com.example.proyecto.data.model.RegisterUser
 import com.example.proyecto.data.model.User
 import com.example.proyecto.data.model.UserData
@@ -29,4 +30,28 @@ interface ApiService {
         @Header("Cookie") token: String,
         @Body profileData: Map<String, String>
     ): Response<UserData>
+
+    @GET("products")
+    suspend fun getProducts(
+        @Header("Cookie") token: String
+    ): Response<List<ProductData>>
+
+    @POST("products")
+    suspend fun createProduct(
+        @Header("Cookie") token: String,
+        @Body product: ProductData
+    ): Response<ProductData>
+
+    @PUT("products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: String,
+        @Header("Cookie") token: String,
+        @Body product: ProductData
+    ): Response<ProductData>
+
+    @DELETE("products/{id}")
+    suspend fun deleteProduct(
+        @Path("id") id: String,
+        @Header("Cookie") token: String
+    ): Response<Unit>
 }

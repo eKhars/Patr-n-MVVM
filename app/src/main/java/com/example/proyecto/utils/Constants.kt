@@ -7,5 +7,6 @@ object Constants {
         const val REGISTER = "register"
         const val HOME = "home"
         const val EDIT_PROFILE = "edit_profile"
+        const val PRODUCTS = "products"
     }
 }

@@ -15,7 +15,8 @@ fun HomeScreen(
     userId: String,
     token: String,
     onLogout: () -> Unit,
-    onEditProfile: () -> Unit
+    onEditProfile: () -> Unit,
+    onProductsClick: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile(userId, token)
@@ -53,14 +54,39 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = onEditProfile,
+                // Sección de acciones principales
+                ElevatedCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Editar Perfil")
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Acciones",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+
+                        Button(
+                            onClick = onEditProfile,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Editar Perfil")
+                        }
+
+                        Button(
+                            onClick = onProductsClick,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Gestionar Productos")
+                        }
+                    }
                 }
 
-                Button(
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Botón de cerrar sesión al final
+                OutlinedButton(
                     onClick = {
                         viewModel.logout()
                         onLogout()

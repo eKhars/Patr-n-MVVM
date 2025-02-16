@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.proyecto.data.repository.UserRepository
+import com.example.proyecto.data.repository.ProductRepository
 import com.example.proyecto.domain.usecase.*
 import com.example.proyecto.ui.screens.home.HomeScreen
 import com.example.proyecto.ui.screens.home.HomeViewModel
@@ -21,6 +22,8 @@ import com.example.proyecto.ui.screens.profile.EditProfileScreen
 import com.example.proyecto.ui.screens.profile.EditProfileViewModel
 import com.example.proyecto.ui.screens.register.RegisterScreen
 import com.example.proyecto.ui.screens.register.RegisterViewModel
+import com.example.proyecto.ui.screens.product.ProductScreen
+import com.example.proyecto.ui.screens.product.ProductViewModel
 import com.example.proyecto.ui.theme.ProyectoTheme
 import com.example.proyecto.utils.Constants.Routes
 
@@ -28,15 +31,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Repositorios
         val userRepository = UserRepository()
+        val productRepository = ProductRepository()
+
+        // Casos de uso
         val loginUseCase = LoginUseCase(userRepository)
         val registerUseCase = RegisterUseCase(userRepository)
         val profileUseCase = ProfileUseCase(userRepository)
+        val productUseCase = ProductUseCase(productRepository)
 
+        // ViewModels
         val loginViewModel = LoginViewModel(loginUseCase)
         val registerViewModel = RegisterViewModel(registerUseCase)
         val homeViewModel = HomeViewModel(profileUseCase)
         val editProfileViewModel = EditProfileViewModel(profileUseCase)
+        val productViewModel = ProductViewModel(productUseCase)
 
         setContent {
             ProyectoTheme {
@@ -48,7 +58,8 @@ class MainActivity : ComponentActivity() {
                         loginViewModel = loginViewModel,
                         registerViewModel = registerViewModel,
                         homeViewModel = homeViewModel,
-                        editProfileViewModel = editProfileViewModel
+                        editProfileViewModel = editProfileViewModel,
+                        productViewModel = productViewModel
                     )
                 }
             }
@@ -61,7 +72,8 @@ fun App(
     loginViewModel: LoginViewModel,
     registerViewModel: RegisterViewModel,
     homeViewModel: HomeViewModel,
-    editProfileViewModel: EditProfileViewModel
+    editProfileViewModel: EditProfileViewModel,
+    productViewModel: ProductViewModel
 ) {
     val navController = rememberNavController()
     var authToken by remember { mutableStateOf<String?>(null) }
@@ -115,6 +127,9 @@ fun App(
                 },
                 onEditProfile = {
                     navController.navigate(Routes.EDIT_PROFILE)
+                },
+                onProductsClick = {
+                    navController.navigate(Routes.PRODUCTS)
                 }
             )
         }
@@ -127,6 +142,16 @@ fun App(
                 onUpdateSuccess = {
                     navController.navigateUp()
                 },
+                onBackClick = {
+                    navController.navigateUp()
+                }
+            )
+        }
+
+        composable(Routes.PRODUCTS) {
+            ProductScreen(
+                viewModel = productViewModel,
+                token = authToken ?: "",
                 onBackClick = {
                     navController.navigateUp()
                 }
