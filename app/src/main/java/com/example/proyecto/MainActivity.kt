@@ -23,9 +23,9 @@ import com.example.proyecto.ui.screens.profile.EditProfileViewModel
 import com.example.proyecto.ui.screens.register.RegisterScreen
 import com.example.proyecto.ui.screens.register.RegisterViewModel
 import com.example.proyecto.ui.screens.product.ProductScreen
-import com.example.proyecto.ui.screens.product.ProductViewModel
 import com.example.proyecto.ui.theme.ProyectoTheme
 import com.example.proyecto.utils.Constants.Routes
+import com.example.proyecto.ui.screens.product.ProductViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

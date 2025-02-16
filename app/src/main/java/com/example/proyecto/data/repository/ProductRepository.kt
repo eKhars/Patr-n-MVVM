@@ -5,6 +5,9 @@ import com.example.proyecto.data.remote.ApiClient
 import com.example.proyecto.domain.model.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -17,11 +20,7 @@ class ProductRepository {
             val response = api.getProducts("token=$token")
             if (response.isSuccessful) {
                 response.body()?.let { products ->
-                    // Mapea los productos para asegurar que tengan un ID
-                    val processedProducts = products.map { product ->
-                        product.copy(id = product.id.takeIf { it.isNotBlank() } ?: "")
-                    }
-                    Result.Success(processedProducts)
+                    Result.Success(products)
                 } ?: Result.Error("Respuesta vacía del servidor")
             } else {
                 handleHttpError(response.code())
@@ -34,16 +33,21 @@ class ProductRepository {
     suspend fun createProduct(
         token: String,
         name: String,
-        quantity: Int
+        quantity: Int,
+        imagePart: MultipartBody.Part?
     ): Result<ProductData> = withContext(Dispatchers.IO) {
         try {
-            val productData = ProductData(
-                id = "",  // El ID será asignado por el servidor
-                name = name,
-                quantity = quantity
+            // Crear las partes del formulario
+            val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val quantityPart = quantity.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val response = api.createProduct(
+                token = "token=$token",
+                name = namePart,
+                quantity = quantityPart,
+                image = imagePart
             )
 
-            val response = api.createProduct("token=$token", productData)
             if (response.isSuccessful) {
                 response.body()?.let {
                     Result.Success(it)
@@ -60,19 +64,16 @@ class ProductRepository {
         token: String,
         productId: String,
         name: String,
-        quantity: Int
+        quantity: Int,
+        imagePart: MultipartBody.Part?
     ): Result<ProductData> = withContext(Dispatchers.IO) {
         try {
-            val updateData = ProductData(
-                id = productId,
-                name = name,
-                quantity = quantity
-            )
-
             val response = api.updateProduct(
                 id = productId,
                 token = "token=$token",
-                product = updateData
+                name = name.toRequestBody("text/plain".toMediaTypeOrNull()),
+                quantity = quantity.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                image = imagePart
             )
 
             if (response.isSuccessful) {

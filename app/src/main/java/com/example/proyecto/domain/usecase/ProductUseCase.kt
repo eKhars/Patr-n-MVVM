@@ -3,30 +3,44 @@ package com.example.proyecto.domain.usecase
 import com.example.proyecto.data.model.ProductData
 import com.example.proyecto.data.repository.ProductRepository
 import com.example.proyecto.domain.model.Result
+import okhttp3.MultipartBody
 
 class ProductUseCase(private val repository: ProductRepository) {
     suspend fun getProducts(token: String): Result<List<ProductData>> {
         return repository.getAllProducts(token)
     }
 
-    suspend fun createProduct(token: String, name: String, quantity: Int): Result<ProductData> {
+    suspend fun createProduct(
+        token: String,
+        name: String,
+        quantity: Int,
+        imagePart: MultipartBody.Part?
+    ): Result<ProductData> {
         if (name.isBlank()) {
             return Result.Error("El nombre del producto es requerido")
         }
         if (quantity < 0) {
             return Result.Error("La cantidad debe ser mayor o igual a 0")
         }
-        return repository.createProduct(token, name, quantity)
+        return repository.createProduct(token, name, quantity, imagePart)
     }
 
-    suspend fun updateProduct(token: String, productId: String, name: String, quantity: Int): Result<ProductData> {
+    suspend fun updateProduct(
+        token: String,
+        productId: String,
+        name: String,
+        quantity: Int,
+        imagePart: MultipartBody.Part?
+    ): Result<ProductData> {
+        // Validaciones
         if (name.isBlank()) {
             return Result.Error("El nombre del producto es requerido")
         }
         if (quantity < 0) {
             return Result.Error("La cantidad debe ser mayor o igual a 0")
         }
-        return repository.updateProduct(token, productId, name, quantity)
+
+        return repository.updateProduct(token, productId, name, quantity, imagePart)
     }
 
     suspend fun deleteProduct(token: String, productId: String): Result<Unit> {

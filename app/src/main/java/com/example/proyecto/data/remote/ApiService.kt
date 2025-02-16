@@ -5,6 +5,8 @@ import com.example.proyecto.data.model.ProductData
 import com.example.proyecto.data.model.RegisterUser
 import com.example.proyecto.data.model.User
 import com.example.proyecto.data.model.UserData
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -36,17 +38,23 @@ interface ApiService {
         @Header("Cookie") token: String
     ): Response<List<ProductData>>
 
+    @Multipart
     @POST("products")
     suspend fun createProduct(
         @Header("Cookie") token: String,
-        @Body product: ProductData
+        @Part("name") name: RequestBody,
+        @Part("quantity") quantity: RequestBody,
+        @Part image: MultipartBody.Part?
     ): Response<ProductData>
 
+    @Multipart
     @PUT("products/{id}")
     suspend fun updateProduct(
         @Path("id") id: String,
         @Header("Cookie") token: String,
-        @Body product: ProductData
+        @Part("name") name: RequestBody,
+        @Part("quantity") quantity: RequestBody,
+        @Part image: MultipartBody.Part?
     ): Response<ProductData>
 
     @DELETE("products/{id}")

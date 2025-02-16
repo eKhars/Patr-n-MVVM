@@ -13,7 +13,6 @@ class RegisterUseCase(private val repository: UserRepository) {
         password: String,
         confirmPassword: String
     ): Result<AuthResponse> {
-        // Validaciones
         when {
             firstName.isBlank() || lastName.isBlank() || email.isBlank() ||
                     password.isBlank() || confirmPassword.isBlank() -> {
