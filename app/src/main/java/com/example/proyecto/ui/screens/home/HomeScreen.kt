@@ -16,7 +16,8 @@ fun HomeScreen(
     token: String,
     onLogout: () -> Unit,
     onEditProfile: () -> Unit,
-    onProductsClick: () -> Unit
+    onProductsClick: () -> Unit,
+    onNotificationsClick: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile(userId, token)
@@ -79,6 +80,13 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Gestionar Productos")
+                        }
+
+                        Button(
+                            onClick = onNotificationsClick,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Preferencias de Notificaciones")
                         }
                     }
                 }

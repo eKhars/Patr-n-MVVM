@@ -37,7 +37,6 @@ class ProductRepository {
         imagePart: MultipartBody.Part?
     ): Result<ProductData> = withContext(Dispatchers.IO) {
         try {
-            // Crear las partes del formulario
             val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val quantityPart = quantity.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
