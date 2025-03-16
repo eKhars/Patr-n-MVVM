@@ -1,4 +1,5 @@
 package com.example.proyecto.ui.screens.product
+
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -61,13 +64,13 @@ class ProductViewModel(
         viewModelScope.launch {
             _uiState.value = ProductUiState.Loading
             try {
-                val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
-                val quantityPart = quantity.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-
+                // Procesar la imagen en un hilo de IO
                 val imagePart = imageUri?.let { uri ->
-                    val file = getFileFromUri(uri, context)
-                    val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("image", file.name, requestBody)
+                    withContext(Dispatchers.IO) {
+                        val file = getFileFromUri(uri, context)
+                        val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
+                        MultipartBody.Part.createFormData("image", file.name, requestBody)
+                    }
                 }
 
                 when (val result = productUseCase.createProduct(token, name, quantity, imagePart)) {
@@ -98,17 +101,13 @@ class ProductViewModel(
         viewModelScope.launch {
             _uiState.value = ProductUiState.Loading
             try {
-                println("Token: $token")
-                println("ID del producto: $productId")
-                println("Nombre: $name")
-                println("Cantidad: $quantity")
-                println("Imagen URI: $imageUri")
-
+                // Procesar la imagen en un hilo de IO
                 val imagePart = imageUri?.let { uri ->
-                    val file = getFileFromUri(uri, context)
-                    println("Archivo de imagen: ${file.absolutePath}")
-                    val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("image", file.name, requestBody)
+                    withContext(Dispatchers.IO) {
+                        val file = getFileFromUri(uri, context)
+                        val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
+                        MultipartBody.Part.createFormData("image", file.name, requestBody)
+                    }
                 }
 
                 when (val result = productUseCase.updateProduct(
@@ -122,8 +121,6 @@ class ProductViewModel(
                         loadProducts(token)
                     }
                     is Result.Error -> {
-                        // Log de error más detallado
-                        println("Error al actualizar producto: ${result.message}")
                         _uiState.value = ProductUiState.Error(result.message)
                     }
                     Result.Loading -> {
@@ -131,12 +128,11 @@ class ProductViewModel(
                     }
                 }
             } catch (e: Exception) {
-                println("Excepción al actualizar producto:")
-                e.printStackTrace()
-                _uiState.value = ProductUiState.Error("Error al actualizar: ${e.message}")
+                _uiState.value = ProductUiState.Error("Error al actualizar producto: ${e.message}")
             }
         }
     }
+
     fun deleteProduct(token: String, productId: String) {
         viewModelScope.launch {
             _uiState.value = ProductUiState.Loading
@@ -163,15 +159,15 @@ class ProductViewModel(
         }
     }
 
-    private fun getFileFromUri(uri: Uri, context: Context): File {
+    private suspend fun getFileFromUri(uri: Uri, context: Context): File = withContext(Dispatchers.IO) {
         val inputStream = context.contentResolver.openInputStream(uri)
-        val file = File(context.cacheDir, "temp_image.jpg")
+        val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
         inputStream?.use { input ->
             file.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
-        return file
+        file
     }
 
     fun resetState() {

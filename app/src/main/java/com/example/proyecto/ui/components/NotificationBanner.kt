@@ -15,9 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
-// Objeto para mantener estado global de notificaciones
 object NotificationState {
-    // Usamos mutableStateOf para que los cambios sean reactivos en Compose
     val message = mutableStateOf("")
     val isVisible = mutableStateOf(false)
 
@@ -36,10 +34,9 @@ fun NotificationBanner() {
     val isVisible by remember { NotificationState.isVisible }
     val message by remember { NotificationState.message }
 
-    // Efecto para auto-ocultar la notificación después de unos segundos
     LaunchedEffect(message) {
         if (message.isNotEmpty()) {
-            delay(5000) // Ocultar después de 5 segundos
+            delay(5000)
             NotificationState.clearNotification()
         }
     }

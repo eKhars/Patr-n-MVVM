@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -41,6 +42,17 @@ android {
 }
 
 dependencies {
+    debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.12")
+    implementation ("androidx.security:security-crypto:1.1.0-alpha06")
+    // Room components
+    implementation ("androidx.room:room-runtime:2.5.2")
+    implementation ("androidx.room:room-ktx:2.5.2")
+    implementation(libs.androidx.lifecycle.process)
+    kapt ("androidx.room:room-compiler:2.5.2")
+
+    // Coroutines
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("com.google.firebase:firebase-messaging-ktx:23.2.1")
 
     // Retrofit

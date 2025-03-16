@@ -5,17 +5,21 @@ import com.example.proyecto.data.remote.ApiClient
 import com.example.proyecto.domain.model.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import kotlin.coroutines.CoroutineContext
 
-class ProductRepository {
+class ProductRepository(
+    private val ioDispatcher: CoroutineContext = Dispatchers.IO
+) {
     private val api = ApiClient.api
 
-    suspend fun getAllProducts(token: String): Result<List<ProductData>> = withContext(Dispatchers.IO) {
+    suspend fun getAllProducts(token: String): Result<List<ProductData>> = withContext(ioDispatcher) {
         try {
             val response = api.getProducts("token=$token")
             if (response.isSuccessful) {
@@ -25,6 +29,9 @@ class ProductRepository {
             } else {
                 handleHttpError(response.code())
             }
+        } catch (e: CancellationException) {
+            // No captamos CancellationException para permitir la cancelación adecuada de coroutines
+            throw e
         } catch (e: Exception) {
             handleException(e)
         }
@@ -35,7 +42,7 @@ class ProductRepository {
         name: String,
         quantity: Int,
         imagePart: MultipartBody.Part?
-    ): Result<ProductData> = withContext(Dispatchers.IO) {
+    ): Result<ProductData> = withContext(ioDispatcher) {
         try {
             val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val quantityPart = quantity.toString().toRequestBody("text/plain".toMediaTypeOrNull())
@@ -54,6 +61,8 @@ class ProductRepository {
             } else {
                 handleHttpError(response.code())
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleException(e)
         }
@@ -65,7 +74,7 @@ class ProductRepository {
         name: String,
         quantity: Int,
         imagePart: MultipartBody.Part?
-    ): Result<ProductData> = withContext(Dispatchers.IO) {
+    ): Result<ProductData> = withContext(ioDispatcher) {
         try {
             val response = api.updateProduct(
                 id = productId,
@@ -82,12 +91,14 @@ class ProductRepository {
             } else {
                 handleHttpError(response.code())
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleException(e)
         }
     }
 
-    suspend fun deleteProduct(token: String, productId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteProduct(token: String, productId: String): Result<Unit> = withContext(ioDispatcher) {
         try {
             val response = api.deleteProduct(productId, "token=$token")
             if (response.isSuccessful) {
@@ -95,6 +106,8 @@ class ProductRepository {
             } else {
                 handleHttpError(response.code())
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleException(e)
         }

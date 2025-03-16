@@ -31,15 +31,56 @@ import com.example.proyecto.ui.screens.product.ProductViewModel
 import com.example.proyecto.ui.screens.notifications.NotificationPreferencesScreen
 import com.example.proyecto.utils.rememberNotificationPermissionState
 import com.example.proyecto.utils.FCMTopicManager
+import com.example.proyecto.utils.EncryptedPreferencesManager
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MainActivity : ComponentActivity() {
     companion object {
         private const val TAG = "MainActivity"
+
+        // StateFlow para compartir el estado del tema oscuro a través de la aplicación
+        private val _darkModeState = MutableStateFlow(false)
+        val darkModeState = _darkModeState.asStateFlow()
+
+        // StateFlow para compartir el idioma preferido
+        private val _languageState = MutableStateFlow(0)
+        val languageState = _languageState.asStateFlow()
+
+        // Función para actualizar el tema oscuro
+        fun updateDarkMode(isDark: Boolean) {
+            _darkModeState.value = isDark
+        }
+
+        // Función para actualizar el idioma
+        fun updateLanguage(languageIndex: Int) {
+            _languageState.value = languageIndex
+        }
     }
+
+    private lateinit var preferencesManager: EncryptedPreferencesManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar el gestor de preferencias encriptadas
+        preferencesManager = EncryptedPreferencesManager(applicationContext)
+
+        // Inicializar la ubicación predeterminada si es necesario
+        preferencesManager.initializeDefaultLocationIfNeeded()
+
+        // Reiniciar el contador de tiempo de la sesión actual
+        preferencesManager.resetSessionTime()
+
+        // Actualizar la última hora de acceso
+        preferencesManager.updateLastAccess()
+
+        // Inicializar el estado del tema oscuro con el valor guardado
+        _darkModeState.value = preferencesManager.getDarkMode()
+
+        // Inicializar el estado del idioma con el valor guardado
+        _languageState.value = preferencesManager.getLanguage()
 
         // Solicitar y guardar el token de FCM
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -76,7 +117,10 @@ class MainActivity : ComponentActivity() {
         val productViewModel = ProductViewModel(productUseCase)
 
         setContent {
-            ProyectoTheme {
+            // Observar el estado del tema oscuro
+            val isDarkMode by darkModeState.collectAsState()
+
+            ProyectoTheme(darkTheme = isDarkMode) {
                 // Verificar permisos de notificación
                 val hasNotificationPermission = rememberNotificationPermissionState()
 
@@ -106,6 +150,32 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        // Actualizar el tiempo de uso total antes de pausar la aplicación
+        preferencesManager.updateUsageTime()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Reiniciar el contador de tiempo cuando la aplicación se reanuda
+        preferencesManager.resetSessionTime()
+    }
+
+    override fun onStop() {
+        // Asegurarnos de guardar el tiempo de uso
+        preferencesManager.updateUsageTime()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        // Asegurarse de guardar el tiempo de uso antes de destruir la actividad
+        preferencesManager.updateUsageTime()
+        super.onDestroy()
     }
 }
 
